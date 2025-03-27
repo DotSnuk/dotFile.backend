@@ -8,6 +8,7 @@ const corsOptions = {
 const session = require('express-session');
 const passport = require('passport');
 
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(session({ secret: 'cats', resave: false, saveUninitialized: false }));
