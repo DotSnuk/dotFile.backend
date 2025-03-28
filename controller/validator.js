@@ -1,4 +1,5 @@
 const { body } = require('express-validator');
+const prisma = require('./prismaClient');
 
 const ERR_NOT_EMPTY = `Can't be empty`;
 const ERR_SHORT = `Too short`;
@@ -6,6 +7,8 @@ const ERR_LONG = `Too long`;
 const ERR_INVALID_CHAR = `Invalid characther(s)`;
 const ERR_NOT_EMAIL = `Not correct email format`;
 const ERR_NOT_MATCH = `Password don't match`;
+const ERR_USER_EXIST = `User already exists`;
+const ERR_EMAIL_EXIST = `Email already exists`;
 
 const name = [
   body('username')
@@ -17,7 +20,22 @@ const name = [
     .isLength({ min: 2 })
     .withMessage(ERR_SHORT)
     .isLength({ max: 15 })
-    .withMessage(ERR_LONG),
+    .withMessage(ERR_LONG)
+    .custom(async value => {
+      const user = await prisma.user.findMany({
+        where: {
+          username: {
+            equals: value,
+          },
+        },
+      });
+      if (user.length > 0) {
+        throw new Error(ERR_USER_EXIST);
+      } else {
+        return value;
+      }
+    })
+    .withMessage(ERR_USER_EXIST),
 ];
 
 const email = [
@@ -28,8 +46,20 @@ const email = [
     .isEmail()
     .withMessage(ERR_NOT_EMAIL)
     .custom(async value => {
-      // call db to check if it exists
-    }),
+      const user = await prisma.user.findMany({
+        where: {
+          email: {
+            equals: value,
+          },
+        },
+      });
+      if (user.length > 0) {
+        throw new Error(ERR_EMAIL_EXIST);
+      } else {
+        return value;
+      }
+    })
+    .withMessage(ERR_EMAIL_EXIST),
 ];
 
 const password = [
@@ -42,7 +72,11 @@ const password = [
 
 const confirm = [
   body('confirm').custom((value, { req }) => {
-    if (value !== req.body.password) throw new Error(ERR_NOT_MATCH);
+    if (value !== req.body.password) {
+      throw new Error(ERR_NOT_MATCH);
+    } else {
+      return value;
+    }
   }),
 ];
 
