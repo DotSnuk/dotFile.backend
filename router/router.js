@@ -3,7 +3,7 @@ const router = Router();
 const auth = require('../controller/auth');
 
 router.post('/login', auth.login);
-router.post('/register');
+router.post('/register', auth.register);
 router.get('/test', (req, res) => {
   console.log('inside test');
   return res.send({ msg: 'hello' });
