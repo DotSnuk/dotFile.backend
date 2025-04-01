@@ -2,12 +2,25 @@ const prisma = require('./prismaClient');
 const { validationResult } = require('express-validator');
 const passwordUtil = require('./password');
 const validate = require('./validator');
+const passport = require('passport');
 
-function login(req, res) {
-  console.log(req.body);
+const login = [
+  passport.authenticate('local'),
+  (req, res, next) => {
+    res.status(200).send({ success: true, user: req.user });
+  },
+];
 
-  return res.status(200).send({ success: true });
-}
+const logout = [
+  (req, res, next) => {
+    req.logout(err => {
+      if (err) {
+        return next(err);
+      }
+      res.redirect('/');
+    });
+  },
+];
 
 const register = [
   validate.name,
@@ -41,7 +54,18 @@ const register = [
   },
 ];
 
+const status = [
+  (req, res) => {
+    if (req.isAuthenticated()) {
+      return res.send({ isAuthenticated: true, user: req.user });
+    }
+    return res.send({ isAuthenticated: false });
+  },
+];
+
 module.exports = {
   login,
+  logout,
   register,
+  status,
 };
