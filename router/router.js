@@ -12,6 +12,9 @@ router.get('/test', (req, res) => {
   console.log('inside test');
   return res.send({ msg: 'hello' });
 });
+router.get('/logDir', file.readDir);
+router.post('/getDir', file.readDir)
+router.post('/makeDir', file.makeDir)
 
 router.get('/', (req, res) => {
   console.log('inside /');
