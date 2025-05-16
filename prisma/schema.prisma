@@ -20,6 +20,32 @@ model User {
   hash      String
   email     String   @unique
   createdAt DateTime @default(now())
+  Folder    Folder[]
+  File      File[]
+}
+
+model Folder {
+  id        Int      @id @default(autoincrement())
+  owner     User     @relation(fields: [ownerId], references: [id])
+  ownerId   Int
+  parentId  Int?
+  parent    Folder?  @relation("FolderToFolder", fields: [parentId], references: [id])
+  children  Folder[] @relation("FolderToFolder")
+  createdAt DateTime @default(now())
+  name      String
+  files     File[]
+}
+
+model File {
+  id        Int      @id @default(autoincrement())
+  owner     User     @relation(fields: [ownerId], references: [id])
+  ownerId   Int
+  name      String
+  url       String
+  sizeBytes Int
+  createdAt DateTime @default(now())
+  folder    Folder   @relation(fields: [folderId], references: [id])
+  folderId  Int
 }
 
 model Session {

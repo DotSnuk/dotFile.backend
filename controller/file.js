@@ -3,50 +3,59 @@ const prisma = require('./prismaClient')
 const fs = require('node:fs')
 const dateParser = require('../utils/dateParser');
 const defaultPath = 'uploads/';
+const supabase = require('./supabase');
+const {decode} = require('base64-arraybuffer');
+const { homedir } = require('node:os');
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    try {
-      if (!fs.existsSync(`${defaultPath}${req.user.id}`)) fs.mkdirSync(`${defaultPath}${req.user.id}`)
-      cb(null, `${defaultPath}${req.user.id}/`);
-    } catch (err) {
-      console.error(err)
-    }
-  },
-  filename: function (req, file, cb) {
-    console.log(req.user)
-    const suffix = Date.now()
-    const extension = file.originalname.substring(file.originalname.lastIndexOf('.'))
-    cb(null, file.fieldname + '-' + suffix + extension)
-  }
-})
+const storage = multer.memoryStorage();
 const upload = multer({storage: storage});
 
 const singleFile = [
-  upload.single('inputfile'), (req, res, next) => {
-    console.log(req.file)
-    res.status(200).send({success: true})
+  upload.single('inputfile'), async (req, res, next) => {
+    // console.log(req.file)
+    // res.status(200).send({success: true})
+    try {
+      const file = req.file;
+      console.log(file)
+      const {data, error} = await supabase
+        .storage
+        .getBucket('users');
+    } catch (err) {
+      console.error(err)
+    }
   }
 ]
 
-const readDir =  (req, res, next) => {
+const readDir =  async (req, res, next) => {
   try {
-    const folderStructure = `${defaultPath}${req.user.id}${req.body.path}`;
-    if (fs.existsSync(folderStructure)) {
-      console.log(folderStructure)
-      const dir = fs.readdirSync(folderStructure)
-      const folders = [];
-      const items = [];
-      dir.map(file => {
-        if (file.lastIndexOf('.') === 0) return
-        if (fs.statSync(`${folderStructure}${file}`).isDirectory()) return folders.push(file)
-        const stats = fs.statSync(`${folderStructure}/${file}`)
-        items.push({filename: file, size: stats.size, dateCreated: stats.birthtime})
-      })
-      res.status(200).send({success: true, data: {folders, items}});
-    };
+
+    const {data, error} = await supabase
+      .storage
+      .from('users')
+      .list()
+
+    // console.log(data)
   } catch (err) {
     console.error(err);
+  }
+}
+
+const getHomeDir = async (req, res, next) => {
+  try {
+    const homeDir = await prisma.folder.findFirst({
+      where: {
+        ownerId: {
+          equals: req.user.id
+        }
+      },
+      include: {
+        parent: true
+      }
+      
+    })
+    return res.status(200).send(homeDir)
+  } catch (err) {
+    console.error(err)
   }
 }
 
@@ -63,5 +72,6 @@ const makeDir = (req, res, next) => {
 module.exports = {
   singleFile,
   readDir,
+  getHomeDir,
   makeDir
 }

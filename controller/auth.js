@@ -38,7 +38,7 @@ const register = [
     }
     next();
   },
-  async (req, res) => {
+  async (req, res, next) => {
     console.log('inside success');
     const { username, password, email } = req.body;
     const hash = await passwordUtil.generateHash(password);
@@ -49,9 +49,25 @@ const register = [
         hash: hash,
       },
     });
-
-    return res.status(200).send({ success: true });
+    // might be able to return the id when creating the user and pass that
+    next();
   },
+  async (req, res, next) => {
+    const {username} = req.body
+    const {id} = await prisma.user.findFirst({select: {
+      id: true
+    }, where: {
+      username: {equals: username}
+    }}, )
+    await prisma.folder.create({
+      data: {
+        name: id.toString(),
+        ownerId: id
+      }
+    })
+    console.log('inside create folder')
+    return res.status(200).send({ success: true });
+  }
 ];
 
 const status = [

@@ -12,6 +12,7 @@
   "dependencies": {
     "@prisma/client": "^6.5.0",
     "@quixo3/prisma-session-store": "^3.1.13",
+    "@supabase/supabase-js": "^2.49.4",
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
@@ -25,6 +26,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.23.0",
+    "base64-arraybuffer": "^1.0.2",
     "eslint": "^9.23.0",
     "globals": "^16.0.0",
     "prettier": "^3.5.3",
