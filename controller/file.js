@@ -19,7 +19,8 @@ const singleFile = [
       console.log(file)
       const {data, error} = await supabase
         .storage
-        .getBucket('users');
+        .from('users')
+        .upload(file.originalname, file)
     } catch (err) {
       console.error(err)
     }
