@@ -45,13 +45,12 @@ const readDir =  async (req, res, next) => {
   try {
     // could perhaps implenent something to check if logged in user
     // is the same as the first part of req.body.path
-    const {data, error} = await supabase
-      .storage
-      .from('users')
-      .list(req.body.path)
-    console.log(data)
-    if (error) throw new Error(error)
-    res.status(200).send(data)
+    const files = await prisma.file.findMany({where: {
+      ownerId: req.user.id,
+      folderId: req.body.folderId
+    }})
+    console.log(files)
+    res.status(200).send(files)
   } catch (err) {
     console.error(err);
   }
