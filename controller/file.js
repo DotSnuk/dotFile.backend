@@ -17,19 +17,33 @@ const singleFile = [
     try {
       const file = req.file;
       console.log(file)
+      const userId = req.user.id
+      const {folderId} = req.body
       const {data, error} = await supabase
         .storage
         .from('users')
-        .upload(file.originalname, file)
+        .upload(`${userId}/${folderId}/${file.originalname}`, file)
+      if (error) throw new Error(error);
+      next()
     } catch (err) {
       console.error(err)
     }
+  },
+  async (req, res, next) => {
+    await prisma.file.create({data: {
+      ownerId: parseInt(req.user.id),
+      name: req.file.originalname,
+      sizeBytes: parseInt(req.file.size),
+      folderId: parseInt(req.body.folderId)
+    }})
+    console.log('bla')
+    res.status(200);
+
   }
 ]
 
 const readDir =  async (req, res, next) => {
   try {
-
     const {data, error} = await supabase
       .storage
       .from('users')

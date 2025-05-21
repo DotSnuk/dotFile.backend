@@ -1,12 +1,15 @@
 const prisma = require('./prismaClient');
 const { validationResult } = require('express-validator');
 const passwordUtil = require('./password');
+const supabase = require('./supabase');
 const validate = require('./validator');
 const passport = require('passport');
 
 const login = [
   passport.authenticate('local'),
-  (req, res, next) => {
+  async (req, res, next) => {
+    // const {id} = req.user;
+    // await supabase.rpc('set_user_id', {user_id: id})
     res.status(200).send({ success: true, user: req.user });
   },
 ];
