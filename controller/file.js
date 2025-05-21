@@ -5,7 +5,6 @@ const dateParser = require('../utils/dateParser');
 const defaultPath = 'uploads/';
 const supabase = require('./supabase');
 const {decode} = require('base64-arraybuffer');
-const { homedir } = require('node:os');
 
 const storage = multer.memoryStorage();
 const upload = multer({storage: storage});
@@ -44,12 +43,15 @@ const singleFile = [
 
 const readDir =  async (req, res, next) => {
   try {
+    // could perhaps implenent something to check if logged in user
+    // is the same as the first part of req.body.path
     const {data, error} = await supabase
       .storage
       .from('users')
-      .list()
-
-    // console.log(data)
+      .list(req.body.path)
+    console.log(data)
+    if (error) throw new Error(error)
+    res.status(200).send(data)
   } catch (err) {
     console.error(err);
   }
