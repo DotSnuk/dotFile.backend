@@ -16,6 +16,8 @@ router.get('/logDir', file.readDir);
 router.post('/getDir', file.readDir)
 router.post('/makeDir', file.makeDir)
 router.get('/getHomeDir', file.getHomeDir)
+router.post('/folderStructure', file.getFolderStructure)
+router.post('/getChildFolders', file.getChildFolders)
 
 router.get('/', (req, res) => {
   console.log('inside /');

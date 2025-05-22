@@ -5,6 +5,7 @@ const dateParser = require('../utils/dateParser');
 const defaultPath = 'uploads/';
 const supabase = require('./supabase');
 const {decode} = require('base64-arraybuffer');
+const { equal } = require('node:assert');
 
 const storage = multer.memoryStorage();
 const upload = multer({storage: storage});
@@ -62,10 +63,10 @@ const getHomeDir = async (req, res, next) => {
       where: {
         ownerId: {
           equals: req.user.id
+        },
+        parentId: {
+          equals: null
         }
-      },
-      include: {
-        parent: true
       }
       
     })
@@ -75,11 +76,59 @@ const getHomeDir = async (req, res, next) => {
   }
 }
 
-const makeDir = (req, res, next) => {
+const getFolderStructure = async (req, res, next) => {
   try {
-    if (fs.existsSync(`${defaultPath}${req.user.id}`)) {
-      fs.mkdirSync(`${defaultPath}${req.user.id}/${req.body.newFolder}`);
-      } 
+    const folders = await prisma.folder.findFirst({
+      where: {
+        ownerId: {
+          equals: req.user.id
+        },
+        id: {
+          equals: req.body.folderId
+        }
+      },
+      include: {
+        parent: true
+      }
+    })
+    console.log(folders)
+    res.status(200).send(folders)
+  } catch(err) {
+    console.error(err)
+  }
+}
+
+const getChildFolders = async (req, res, next) => {
+  try {
+    const childFolders = await prisma.folder.findMany({
+      where: {
+        ownerId: {
+          equals: req.user.id
+        },
+      parentId: {
+        equals: req.body.currentFolderId
+      }
+      }
+    })
+    res.status(200).send(childFolders)
+  } catch(err) {
+    console.error(err)
+  }
+}
+
+const makeDir = async (req, res, next) => {
+  try {
+    // if (fs.existsSync(`${defaultPath}${req.user.id}`)) {
+    //   fs.mkdirSync(`${defaultPath}${req.user.id}/${req.body.newFolder}`);
+    //   } 
+    const folder = await prisma.folder.create({
+      data: {
+        name: req.body.folderName,
+        ownerId: req.user.id,
+        parentId: req.body.currentFolderId
+      }
+    })
+    res.status(200).send(folder)
     } catch (err) {
       console.log(err)
   } 
@@ -89,5 +138,7 @@ module.exports = {
   singleFile,
   readDir,
   getHomeDir,
-  makeDir
+  getFolderStructure,
+  makeDir,
+  getChildFolders
 }
